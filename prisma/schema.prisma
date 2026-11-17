@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String       @id @default(uuid()) @db.Uuid
+  name      String
+  email     String       @unique
+  createdAt DateTime     @default(now()) @map("created_at")
+  members   ChatMember[]
+  @@map("users")
+}
+
+model Chat {
+  id        String       @id @default(uuid()) @db.Uuid
+  type      String       @default("DIRECT")
+  pairKey   String       @unique @map("pair_key")
+  createdAt DateTime     @default(now()) @map("created_at")
+  members   ChatMember[]
+  @@map("chats")
+}
+
+model ChatMember {
+  chatId   String   @db.Uuid @map("chat_id")
+  userId   String   @db.Uuid @map("user_id")
+  joinedAt DateTime @default(now()) @map("joined_at")
+  chat     Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@id([chatId, userId])
+  @@index([userId])
+  @@map("chat_members")
+}
